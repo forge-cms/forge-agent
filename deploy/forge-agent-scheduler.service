@@ -1,0 +1,11 @@
+[Unit]
+Description=forge-agent scheduler
+After=network.target
+
+[Service]
+EnvironmentFile=/etc/forge-agent/scheduler.env
+ExecStart=/usr/local/bin/forge-agent-scheduler
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
