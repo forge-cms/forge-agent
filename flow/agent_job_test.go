@@ -4,6 +4,7 @@ package forgeagent
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -190,6 +191,45 @@ func TestBuildTask(t *testing.T) {
 		want := base + " Use the http_post tool to send your output to: https://example.com/hook"
 		if got := buildTask(j); got != want {
 			t.Errorf("buildTask = %q, want %q", got, want)
+		}
+	})
+}
+
+// — buildSignalTask ——————————————————————————————————————————————————————————
+
+func TestBuildSignalTask(t *testing.T) {
+	t.Run("no webhook", func(t *testing.T) {
+		ev := forge.SignalEvent{Type: "Post", Slug: "hello-world", Title: "Hello World", URL: "https://example.com/posts/hello-world"}
+		got := buildSignalTask(&AgentJob{}, ev)
+		if !strings.Contains(got, `"hello-world"`) {
+			t.Errorf("expected slug in task, got: %s", got)
+		}
+		if !strings.Contains(got, "A new Post lifecycle event occurred") {
+			t.Errorf("expected type prefix in task, got: %s", got)
+		}
+		if !strings.Contains(got, "Execute your instructions") {
+			t.Errorf("expected closing instruction in task, got: %s", got)
+		}
+	})
+
+	t.Run("with webhook", func(t *testing.T) {
+		ev := forge.SignalEvent{Type: "Post", Slug: "hello-world"}
+		got := buildSignalTask(&AgentJob{WebhookURL: "https://example.com/hook"}, ev)
+		if !strings.Contains(got, "http_post") {
+			t.Errorf("expected http_post instruction, got: %s", got)
+		}
+		if !strings.Contains(got, "https://example.com/hook") {
+			t.Errorf("expected webhook URL in task, got: %s", got)
+		}
+	})
+
+	t.Run("json contains all event fields", func(t *testing.T) {
+		ev := forge.SignalEvent{Type: "Story", Slug: "my-story", Title: "My Story", URL: "https://example.com/stories/my-story"}
+		got := buildSignalTask(&AgentJob{}, ev)
+		for _, want := range []string{`"my-story"`, `"My Story"`, `"https://example.com/stories/my-story"`} {
+			if !strings.Contains(got, want) {
+				t.Errorf("expected %s in task, got: %s", want, got)
+			}
 		}
 	})
 }

@@ -4,6 +4,7 @@ package forgeagent
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -180,8 +181,9 @@ func (m *Module) handleSignal(ctx context.Context, sig forge.Signal, ev forge.Si
 			continue
 		}
 		job := j
+		task := buildSignalTask(job, ev)
 		go func() {
-			_, runErr := agent.New(m.agentConfig(job)).Run(ctx, buildTask(job))
+			_, runErr := agent.New(m.agentConfig(job)).Run(ctx, task)
 			if runErr != nil {
 				slog.Error("forge-agent: signal job failed",
 					"job", job.Name,
@@ -221,10 +223,24 @@ func (m *Module) agentConfig(j *AgentJob) agent.Config {
 	}
 }
 
-// buildTask returns the task prompt for an agent run.
+// buildTask returns the task prompt for a cron-triggered agent run.
 // If WebhookURL is set, instructs the agent to POST output there via http_post.
 func buildTask(j *AgentJob) string {
 	task := "Execute your instructions as defined in the system prompt."
+	if j.WebhookURL != "" {
+		task += " Use the http_post tool to send your output to: " + j.WebhookURL
+	}
+	return task
+}
+
+// buildSignalTask returns the task prompt for a signal-triggered agent run,
+// enriched with the full SignalEvent serialized as JSON.
+func buildSignalTask(j *AgentJob, ev forge.SignalEvent) string {
+	evJSON, _ := json.Marshal(ev)
+	task := fmt.Sprintf(
+		"A new %s lifecycle event occurred: %s\nExecute your instructions as defined in the system prompt.",
+		ev.Type, string(evJSON),
+	)
 	if j.WebhookURL != "" {
 		task += " Use the http_post tool to send your output to: " + j.WebhookURL
 	}

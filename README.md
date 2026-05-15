@@ -4,7 +4,7 @@ A minimal Go agent runtime: Anthropic API + tool use loop + MCP client + built-i
 
 forge-agent connects Claude to any MCP server via SSE or Streamable HTTP, dispatches tool calls, and drives the conversation to completion. It ships as a library (`forge-cms.dev/forge-agent`) and runnable binaries.
 
-**v0.3.0 — Forge integration (AgentJob)**
+**v0.3.3 — SignalEvent context in agent task**
 
 ---
 
