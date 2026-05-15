@@ -1,5 +1,11 @@
 # Changelog — forge-agent
 
+## [0.3.2] — 2026-05-15
+
+### Fixed
+
+- `forge-agent/flow`: add `forge.MCP(forge.MCPRead, forge.MCPWrite)` to `forge.NewModule` — AgentJob MCP tools were not generated without this explicit option.
+
 ## [0.3.1] — 2026-05-15
 
 ### Changed

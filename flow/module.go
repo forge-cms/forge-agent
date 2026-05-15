@@ -69,6 +69,7 @@ func newWithRepo(repo forge.Repository[*AgentJob], cfg Config) *Module {
 	m.mod = forge.NewModule((*AgentJob)(nil),
 		forge.At("/agent-jobs"),
 		forge.Repo(repo),
+		forge.MCP(forge.MCPRead, forge.MCPWrite),
 		forge.On(forge.AfterPublish, m.rebuildOnChange),
 		forge.On(forge.AfterArchive, m.rebuildOnChange),
 	)
