@@ -45,16 +45,16 @@ type AgentJob struct {
 	Trigger string `forge:"required"`
 	// ContentTypeFilter restricts signal-triggered jobs to the named content type.
 	// Empty matches all types. Ignored for cron triggers.
-	ContentTypeFilter string `db:"content_type_filter"`
+	ContentTypeFilter string `db:"content_type_filter" json:"content_type_filter"`
 	// SystemPrompt is the agent's system instruction, prepended to every run.
-	SystemPrompt string `forge:"required" db:"system_prompt"`
+	SystemPrompt string `forge:"required" db:"system_prompt" json:"system_prompt"`
 	// Model is the Anthropic model ID. Defaults to "claude-sonnet-4-6" when empty.
 	Model string
 	// MaxTurns is the maximum tool-use loops per run. Defaults to 10 when zero.
-	MaxTurns int `db:"max_turns"`
+	MaxTurns int `db:"max_turns" json:"max_turns"`
 	// WebhookURL is an optional output channel. When set, the agent's task
 	// prompt includes an instruction to POST output here via http_post.
-	WebhookURL string `db:"webhook_url"`
+	WebhookURL string `db:"webhook_url" json:"webhook_url"`
 }
 
 // ContentTitle implements [forge.Titled] so signal events carry the job name.

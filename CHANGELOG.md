@@ -1,5 +1,11 @@
 # Changelog — forge-agent
 
+## [0.3.4] — 2026-05-15
+
+### Fixed
+
+- `forge-agent/flow`: add `json` tags to `AgentJob` fields whose Go names differ from their snake_case JSON keys (`content_type_filter`, `system_prompt`, `max_turns`, `webhook_url`). Without these tags `json.Unmarshal` silently dropped the values, causing `create_agent_job` via MCP to return a spurious `validation failed: SystemPrompt: required` error even when `system_prompt` was supplied.
+
 ## [0.3.3] — 2026-05-15
 
 ### Fixed
