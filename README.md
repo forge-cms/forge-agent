@@ -4,7 +4,7 @@ A minimal Go agent runtime: Anthropic API + tool use loop + MCP client + built-i
 
 forge-agent connects Claude to any MCP server via SSE or Streamable HTTP, dispatches tool calls, and drives the conversation to completion. It ships as a library (`forge-cms.dev/forge-agent`) and runnable binaries.
 
-**v0.2.0 — Scheduler + UC2**
+**v0.3.0 — Forge integration (AgentJob)**
 
 ---
 
@@ -193,6 +193,79 @@ systemctl kill -s SIGUSR1 forge-agent-scheduler
 ```
 
 The service continues running normally after the triggered run completes.
+
+---
+
+## Forge integration — `forge-agent/forge/`
+
+`forge-cms.dev/forge-agent/forge` is an AGPL-3.0-or-later sub-package that wires
+agent execution into a Forge application. It exposes `AgentJob` as a Forge content
+type with full lifecycle management and auto-generated MCP tools.
+
+### Quick start
+
+```go
+import forgeagent "forge-cms.dev/forge-agent/forge"
+
+// At startup — create table before connecting the module.
+forgeagent.CreateTable(db)
+
+agentMod := forgeagent.New(db, forgeagent.Config{
+    MCPURL:   "http://localhost:8080/mcp",
+    MCPToken: os.Getenv("FORGE_TOKEN"),
+})
+agentMod.Register(app) // wires MCP tools + signal bus
+defer agentMod.Stop()
+```
+
+### AgentJob fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `Name` | string | Human-readable identifier. Used as slug source. Required. |
+| `Trigger` | string | 5-field cron expression (`"45 13 * * *"`) or forge signal name (`"after_publish"`). Required. |
+| `ContentTypeFilter` | string | Restrict signal triggers to a content type (e.g. `"Post"`). Empty = all types. Ignored for cron triggers. |
+| `SystemPrompt` | string | System instruction prepended to every run. Required. |
+| `Model` | string | Anthropic model ID. Defaults to `"claude-sonnet-4-6"`. |
+| `MaxTurns` | int | Max tool-use loops. Defaults to 10. |
+| `WebhookURL` | string | If set, agent's task prompt includes an instruction to POST output here via `http_post`. |
+
+Status lifecycle: Draft (job exists, does not run) → Published (active) → Archived (stopped).
+
+### MCP tools (auto-generated)
+
+`create_agent_job`, `get_agent_job`, `list_agent_jobs`, `update_agent_job`,
+`publish_agent_job`, `archive_agent_job`, `delete_agent_job`. Role: Admin.
+
+### Signal triggers
+
+Set `Trigger` to any `forge.Signal` string value:
+
+| Signal | Fires when |
+|--------|-----------|
+| `after_publish` | Content transitions to Published |
+| `after_create` | New content item created |
+| `after_update` | Content updated |
+| `after_unpublish` | Content moved out of Published |
+| `after_archive` | Content archived |
+| `after_schedule` | Content scheduled |
+| `after_delete` | Content deleted |
+
+Set `ContentTypeFilter` to restrict to a content type (e.g. `"Post"`). Leave empty
+to match all types. Note: AgentJob lifecycle events never trigger other jobs — the
+module guards against self-activation automatically.
+
+### UC1 — devlog-social-drafts example
+
+```
+1. create_agent_job — name: "devlog-social-drafts",
+                      trigger: "after_publish",
+                      content_type_filter: "Post",
+                      system_prompt: "Draft LinkedIn and X posts for this content."
+2. publish_agent_job slug="devlog-social-drafts" — activates the job
+3. Publish a Post — signal fires, agent runs, creates scheduled social posts
+4. archive_agent_job slug="devlog-social-drafts" — deactivates the job
+```
 
 ---
 
