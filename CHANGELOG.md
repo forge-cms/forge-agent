@@ -1,5 +1,11 @@
 # Changelog — forge-agent
 
+## [0.3.1] — 2026-05-15
+
+### Changed
+
+- Renamed sub-package `forge-agent/forge/` to `forge-agent/flow/`. Import path is now `forge-cms.dev/forge-agent/flow`. No logic changes.
+
 ## [0.3.0] — 2026-05-15
 
 ### Added

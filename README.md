@@ -196,16 +196,16 @@ The service continues running normally after the triggered run completes.
 
 ---
 
-## Forge integration — `forge-agent/forge/`
+## Forge integration — `forge-agent/flow/`
 
-`forge-cms.dev/forge-agent/forge` is an AGPL-3.0-or-later sub-package that wires
+`forge-cms.dev/forge-agent/flow` is an AGPL-3.0-or-later sub-package that wires
 agent execution into a Forge application. It exposes `AgentJob` as a Forge content
 type with full lifecycle management and auto-generated MCP tools.
 
 ### Quick start
 
 ```go
-import forgeagent "forge-cms.dev/forge-agent/forge"
+import forgeagent "forge-cms.dev/forge-agent/flow"
 
 // At startup — create table before connecting the module.
 forgeagent.CreateTable(db)
