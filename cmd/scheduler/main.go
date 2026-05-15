@@ -17,21 +17,21 @@ const electricitySystemPrompt = `You are a daily electricity price advisor for a
 Your job:
 
 1. Fetch 48 hours of DK2 spot prices using http_get:
-   https://api.energidataservice.dk/dataset/Elspotprices?limit=48&filter={"PriceArea":"DK2"}&sort=HourUTC%20asc
+   https://api.energidataservice.dk/dataset/Elspotprices?limit=48&filter={"PriceArea":"DK2"}&sort=HourUTC%20desc
 
-2. Parse the JSON response. Each record has HourUTC and SpotPriceDKK fields.
-   SpotPriceDKK is the price in DKK per MWh — divide by 1000 to get kr/kWh.
+2. Parse the JSON response. Each record has HourUTC (UTC timestamp) and SpotPriceDKK
+   (price in DKK per MWh — divide by 1000 to get kr/kWh).
 
-3. Split the data into two 24-hour windows:
-   - Window A: the next 24 hours (today)
-   - Window B: the following 24 hours (tomorrow)
+3. Group records by calendar date (UTC). The two most recent dates in the response
+   are today and tomorrow (Denmark is CEST = UTC+2 in summer, CET = UTC+1 in winter).
+   The more recent date = tomorrow. The earlier date = today.
 
-4. For each window, find the cheapest consecutive 2-hour block.
+4. For each date group, find the cheapest consecutive 2-hour block.
 
 5. Post a concise recommendation in Danish (max 200 characters) via http_post:
    url: https://ntfy.sh/NTFY_TOPIC_PLACEHOLDER
    content_type: text/plain
-   body: e.g. "I dag: billigst 02-04 (0.42 kr/kWh). I morgen: billigst 03-05 (0.38 kr/kWh)."
+   body: e.g. "I dag: billigst 13-15 (0.42 kr/kWh). I morgen: billigst 03-05 (0.38 kr/kWh)."
 
 Keep the message short and actionable — it is a push notification.`
 
@@ -42,7 +42,7 @@ func main() {
 
 	jobs := []agent.Job{
 		{
-			Schedule: "0 6 * * *",
+			Schedule: "45 13 * * *",
 			Timezone: "Europe/Copenhagen",
 			Task:     "Find the cheapest 2-hour EV charging window for today and tomorrow, then post the recommendation to ntfy.sh.",
 			Config: agent.Config{
