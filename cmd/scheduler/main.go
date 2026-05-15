@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -61,7 +62,25 @@ func main() {
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
+
+	runNow := make(chan os.Signal, 1)
+	notifyUSR1(runNow)
+
+	for {
+		select {
+		case <-quit:
+			return
+		case <-runNow:
+			go func() {
+				result, err := agent.New(jobs[0].Config).Run(context.Background(), jobs[0].Task)
+				if err != nil {
+					fmt.Fprintln(os.Stderr, "manual run error:", err)
+					return
+				}
+				fmt.Fprintln(os.Stderr, "manual run done:", result)
+			}()
+		}
+	}
 }
 
 // requireEnv returns the value of the named environment variable.

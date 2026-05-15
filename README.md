@@ -161,6 +161,7 @@ $env:GOOS = ""; $env:GOARCH = ""
 
 ```bash
 scp forge-agent-scheduler root@your-server:/usr/local/bin/
+scp deploy/forge-agent-scheduler.service root@your-server:/etc/systemd/system/
 ```
 
 **3. Create the env file on the server**
@@ -177,12 +178,21 @@ chmod 600 /etc/forge-agent/scheduler.env
 **4. Install and start the service**
 
 ```bash
-cp deploy/forge-agent-scheduler.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable forge-agent-scheduler
 systemctl start forge-agent-scheduler
 systemctl status forge-agent-scheduler
 ```
+
+### Triggering a manual run
+
+Send SIGUSR1 to trigger an immediate agent run without restarting the service:
+
+```bash
+systemctl kill -s SIGUSR1 forge-agent-scheduler
+```
+
+The service continues running normally after the triggered run completes.
 
 ---
 
