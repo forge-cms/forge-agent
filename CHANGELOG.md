@@ -10,7 +10,7 @@
 
 ### Fixed
 
-- `forge-agent/flow`: signal-triggered jobs now receive an enriched task string containing the content item's type, slug, title, and URL from the `forge.SignalEvent`. Previously the agent received only the static cron prompt with no information about what triggered it.
+- `forge-agent/flow`: signal-triggered jobs now receive an enriched task string with the full `forge.SignalEvent` serialised as JSON. Previously the agent received only the static cron prompt with no information about what triggered it.
 
 ## [0.3.2] — 2026-05-15
 
