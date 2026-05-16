@@ -176,6 +176,9 @@ func (m *Module) handleSignal(ctx context.Context, sig forge.Signal, ev forge.Si
 		return fmt.Errorf("forge-agent: load jobs for signal %s: %w", sig, err)
 	}
 
+	// Detach from the request context so the agent run is not cancelled when
+	// the triggering HTTP request finishes.
+	runCtx := context.WithoutCancel(ctx)
 	for _, j := range jobs {
 		if !matchesSignal(j, sig, ev) {
 			continue
@@ -183,7 +186,7 @@ func (m *Module) handleSignal(ctx context.Context, sig forge.Signal, ev forge.Si
 		job := j
 		task := buildSignalTask(job, ev)
 		go func() {
-			_, runErr := agent.New(m.agentConfig(job)).Run(ctx, task)
+			_, runErr := agent.New(m.agentConfig(job)).Run(runCtx, task)
 			if runErr != nil {
 				slog.Error("forge-agent: signal job failed",
 					"job", job.Name,
