@@ -162,6 +162,9 @@ func (m *Module) rebuildScheduler(ctx context.Context) error {
 // It fires published AgentJobs whose Trigger matches the signal and whose
 // ContentTypeFilter matches the event's content type.
 func (m *Module) handleSignal(ctx context.Context, sig forge.Signal, ev forge.SignalEvent) error {
+	slog.Info("forge-agent: handleSignal called",
+		"signal", string(sig), "type", ev.Type, "slug", ev.Slug)
+
 	// Guard: never trigger jobs in response to AgentJob lifecycle events.
 	// This prevents a job with an empty ContentTypeFilter from activating
 	// other jobs whenever an AgentJob is published or archived.
@@ -175,16 +178,21 @@ func (m *Module) handleSignal(ctx context.Context, sig forge.Signal, ev forge.Si
 	if err != nil {
 		return fmt.Errorf("forge-agent: load jobs for signal %s: %w", sig, err)
 	}
+	slog.Info("forge-agent: signal jobs loaded", "count", len(jobs))
 
 	// Detach from the request context so the agent run is not cancelled when
 	// the triggering HTTP request finishes.
 	runCtx := context.WithoutCancel(ctx)
 	for _, j := range jobs {
-		if !matchesSignal(j, sig, ev) {
+		matched := matchesSignal(j, sig, ev)
+		slog.Info("forge-agent: signal job evaluated", "job", j.Name, "matched", matched)
+		if !matched {
 			continue
 		}
 		job := j
 		task := buildSignalTask(job, ev)
+		slog.Info("forge-agent: starting agent run",
+			"job", job.Name, "signal", string(sig), "type", ev.Type, "slug", ev.Slug)
 		go func() {
 			_, runErr := agent.New(m.agentConfig(job)).Run(runCtx, task)
 			if runErr != nil {
@@ -195,6 +203,8 @@ func (m *Module) handleSignal(ctx context.Context, sig forge.Signal, ev forge.Si
 					"slug", ev.Slug,
 					"error", runErr,
 				)
+			} else {
+				slog.Info("forge-agent: agent run complete", "job", job.Name)
 			}
 		}()
 	}

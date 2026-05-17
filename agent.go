@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	anthropic "github.com/anthropics/anthropic-sdk-go"
 )
@@ -55,12 +56,15 @@ func New(cfg Config) *Agent {
 func (a *Agent) Run(ctx context.Context, task string) (string, error) {
 	var mcp *mcpClient
 	if a.cfg.MCPURL != "" {
+		slog.Info("agent: connecting to MCP",
+			"url", a.cfg.MCPURL, "token_set", a.cfg.MCPToken != "")
 		var err error
 		mcp, err = connectMCP(ctx, a.cfg.MCPURL, a.cfg.MCPToken, a.cfg.StreamableHTTP)
 		if err != nil {
 			return "", fmt.Errorf("agent: %w", err)
 		}
 		defer mcp.close()
+		slog.Info("agent: MCP connected", "tools", len(mcp.toolParams()))
 	}
 
 	bt := builtinTools()
@@ -92,7 +96,8 @@ func (a *Agent) Run(ctx context.Context, task string) (string, error) {
 	}
 
 	var lastText string
-	for range a.cfg.MaxTurns {
+	for i := range a.cfg.MaxTurns {
+		slog.Info("agent: calling Anthropic API", "turn", i+1)
 		params.Messages = messages
 
 		resp, err := client.Messages.New(ctx, params)
@@ -106,6 +111,9 @@ func (a *Agent) Run(ctx context.Context, task string) (string, error) {
 			}
 		}
 
+		slog.Info("agent: Anthropic response",
+			"stop_reason", string(resp.StopReason), "text_len", len(lastText))
+
 		if resp.StopReason != anthropic.StopReasonToolUse {
 			return lastText, nil
 		}
@@ -118,6 +126,7 @@ func (a *Agent) Run(ctx context.Context, task string) (string, error) {
 			if !ok {
 				continue
 			}
+			slog.Info("agent: dispatching tool", "tool", use.Name)
 			result, isErr := dispatchTool(ctx, use, bt, mcp)
 			toolResults = append(toolResults, anthropic.ContentBlockParamUnion{
 				OfToolResult: &anthropic.ToolResultBlockParam{

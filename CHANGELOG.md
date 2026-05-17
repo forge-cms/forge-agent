@@ -1,5 +1,17 @@
 # Changelog — forge-agent
 
+## [0.3.6] — 2026-05-17
+
+### Added
+
+- `flow/module.go`: `slog.Info` at each key point in `handleSignal` — entry,
+  jobs loaded count, per-job match evaluation, goroutine spawn, and run completion.
+- `agent.go`: `slog.Info` before/after `connectMCP`, at the start of each
+  Anthropic API turn, after each response, and before each tool dispatch.
+  All log lines use structured key/value fields for easy filtering.
+
+---
+
 ## [0.3.5] — 2026-05-17
 
 ### Fixed
