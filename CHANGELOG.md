@@ -1,5 +1,17 @@
 # Changelog — forge-agent
 
+## [0.3.7] — 2026-05-17
+
+### Added
+
+- `flow.Config.StreamableHTTP bool` — exposes `agent.Config.StreamableHTTP` to
+  operators. Set to `true` when connecting to forge-mcp; `SSEClientTransport`
+  hangs against forge-mcp because the initialize response arrives in the POST
+  body, not the SSE stream. `StreamableClientTransport` reads the POST body
+  correctly.
+
+---
+
 ## [0.3.6] — 2026-05-17
 
 ### Added

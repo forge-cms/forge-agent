@@ -19,6 +19,9 @@ type Config struct {
 	MCPURL string
 	// MCPToken is a forge token with Author-or-higher role for agent MCP calls.
 	MCPToken string
+	// StreamableHTTP switches the MCP client from SSE to Streamable HTTP transport.
+	// Use true when connecting to forge-mcp; false for SSE-only servers.
+	StreamableHTTP bool
 }
 
 // Module integrates forge-agent with a Forge application.
@@ -228,11 +231,12 @@ func matchesSignal(j *AgentJob, sig forge.Signal, ev forge.SignalEvent) bool {
 
 func (m *Module) agentConfig(j *AgentJob) agent.Config {
 	return agent.Config{
-		MCPURL:       m.cfg.MCPURL,
-		MCPToken:     m.cfg.MCPToken,
-		SystemPrompt: j.SystemPrompt,
-		Model:        j.Model,
-		MaxTurns:     j.MaxTurns,
+		MCPURL:         m.cfg.MCPURL,
+		MCPToken:       m.cfg.MCPToken,
+		StreamableHTTP: m.cfg.StreamableHTTP,
+		SystemPrompt:   j.SystemPrompt,
+		Model:          j.Model,
+		MaxTurns:       j.MaxTurns,
 	}
 }
 
