@@ -1,5 +1,11 @@
 # Changelog — forge-agent
 
+## [0.3.5] — 2026-05-17
+
+### Fixed
+
+- `agent`: `connectMCP` now calls `context.WithoutCancel` before establishing the SSE or Streamable HTTP connection. Signal-triggered jobs previously failed with `context canceled` because `forge.App.dispatchBus` applies a 100 ms deadline to each `OnSignal` handler and calls `cancel()` immediately after it returns. The partial fix in `forge-agent/flow` (v0.3.4) detached the goroutine's context but left `connectMCP` itself vulnerable to any short-lived parent context at any call site. Detaching inside `connectMCP` is the correct layer: the SSE stream lifetime is an implementation detail of the MCP connection, not the caller's responsibility.
+
 ## [0.3.4] — 2026-05-15
 
 ### Fixed
