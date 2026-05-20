@@ -1,5 +1,18 @@
 # Changelog — forge-agent
 
+## [0.3.8] — 2026-05-20
+
+### Fixed
+
+- UC2 scheduler: migrated from discontinued `Elspotprices` dataset (data ended
+  2025-09-30) to `DayAheadPrices`. Updated field references: `HourUTC` →
+  `TimeUTC`, `SpotPriceDKK` → `DayAheadPriceDKK`. Updated fetch limit from
+  48 to 192 records (data is now 15-minute resolution; 192 = 48 hours × 4).
+  Added note that `DayAheadPriceDKK` is derived from EUR via Nationalbanken's
+  exchange rate and may differ slightly from other price trackers.
+
+---
+
 ## [0.3.7] — 2026-05-17
 
 ### Added

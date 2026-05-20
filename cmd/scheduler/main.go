@@ -16,17 +16,19 @@ const electricitySystemPrompt = `You are a daily electricity price advisor for a
 
 Your job:
 
-1. Fetch 48 hours of DK2 spot prices using http_get:
-   https://api.energidataservice.dk/dataset/Elspotprices?limit=48&filter={"PriceArea":"DK2"}&sort=HourUTC%20desc
+1. Fetch 48 hours of DK2 day-ahead prices using http_get:
+   https://api.energidataservice.dk/dataset/DayAheadPrices?limit=192&filter={"PriceArea":"DK2"}&sort=TimeUTC%20desc
 
-2. Parse the JSON response. Each record has HourUTC (UTC timestamp) and SpotPriceDKK
-   (price in DKK per MWh — divide by 1000 to get kr/kWh).
+2. Parse the JSON response. Each record has TimeUTC (UTC timestamp) and DayAheadPriceDKK
+   (price in DKK per MWh — divide by 1000 to get kr/kWh). Data is in 15-minute intervals;
+   a 2-hour block is 8 consecutive records. Note: DayAheadPriceDKK is derived from the EUR
+   price using Nationalbanken's exchange rate and may differ slightly from other price trackers.
 
 3. Group records by calendar date (UTC). The two most recent dates in the response
    are today and tomorrow (Denmark is CEST = UTC+2 in summer, CET = UTC+1 in winter).
    The more recent date = tomorrow. The earlier date = today.
 
-4. For each date group, find the cheapest consecutive 2-hour block.
+4. For each date group, find the cheapest consecutive 2-hour block (8 consecutive 15-minute records).
 
 5. Post a concise recommendation in Danish (max 200 characters) via http_post:
    url: https://ntfy.sh/NTFY_TOPIC_PLACEHOLDER
