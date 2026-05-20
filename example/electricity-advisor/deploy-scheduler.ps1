@@ -1,3 +1,4 @@
+Set-Location (Join-Path $PSScriptRoot "..\..")
 $SERVER = "root@<your-server>"
 $BINARY = "forge-agent-scheduler"
 $REMOTE_BIN = "/usr/local/bin/$BINARY"
