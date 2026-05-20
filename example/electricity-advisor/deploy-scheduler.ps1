@@ -4,7 +4,7 @@ $REMOTE_BIN = "/usr/local/bin/$BINARY"
 
 Write-Host "Building linux/amd64..."
 $env:GOOS = "linux"; $env:GOARCH = "amd64"
-go build -o $BINARY ./cmd/scheduler
+go build -o $BINARY ./example/electricity-advisor
 $env:GOOS = ""; $env:GOARCH = ""
 
 if (-not $?) { Write-Host "Build failed"; exit 1 }
