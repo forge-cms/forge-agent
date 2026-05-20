@@ -1,5 +1,20 @@
 # Changelog — forge-agent
 
+## [0.4.0] — 2026-05-20
+
+### Changed
+
+- Moved the UC2 electricity price advisor (`cmd/scheduler/`) to
+  `example/electricity-advisor/`. The scheduler library API
+  (`agent.NewScheduler`, `agent.Job`) is unchanged.
+- Moved `deploy/` and `deploy-scheduler.ps1` to
+  `example/electricity-advisor/deploy/` and
+  `example/electricity-advisor/deploy-scheduler.ps1`.
+- README: updated all `cmd/scheduler` references to
+  `example/electricity-advisor/`; added Examples table.
+
+---
+
 ## [0.3.8] — 2026-05-20
 
 ### Fixed

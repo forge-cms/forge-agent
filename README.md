@@ -44,6 +44,14 @@ go run ./cmd/agent-github
 
 ---
 
+## Examples
+
+| Example | Description |
+|---------|-------------|
+| [`example/electricity-advisor/`](example/electricity-advisor/) | A daily DK2 electricity price advisor that posts cheap-window recommendations to ntfy.sh — demonstrates `agent.NewScheduler` with a cron-triggered Job. |
+
+---
+
 ## Config reference
 
 ```go
@@ -134,15 +142,15 @@ defer s.Stop()
 
 ### `time/tzdata` embed
 
-The `cmd/scheduler` binary embeds the Go timezone database with `import _ "time/tzdata"`. This is required on Alpine and scratch containers that have no OS-level tzdata. The library itself does not embed it — callers who manage tzdata themselves are not affected.
+The `example/electricity-advisor` binary embeds the Go timezone database with `import _ "time/tzdata"`. This is required on Alpine and scratch containers that have no OS-level tzdata. The library itself does not embed it — callers who manage tzdata themselves are not affected.
 
-### Quick start — `cmd/scheduler`
+### Quick start — `example/electricity-advisor`
 
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...
 export NTFY_TOPIC=my-ntfy-topic
 
-go run ./cmd/scheduler
+go run ./example/electricity-advisor
 ```
 
 The scheduler fires at 06:00 Europe/Copenhagen each day, fetches 48 hours of DK2 electricity spot prices, identifies the cheapest 2-hour window in the next 24 hours and in the following 24 hours, and posts a concise recommendation in Danish to `https://ntfy.sh/$NTFY_TOPIC`.
@@ -153,7 +161,7 @@ The scheduler fires at 06:00 Europe/Copenhagen each day, fetches 48 hours of DK2
 
 ```powershell
 $env:GOOS = "linux"; $env:GOARCH = "amd64"
-go build -o forge-agent-scheduler ./cmd/scheduler
+go build -o forge-agent-scheduler ./example/electricity-advisor
 $env:GOOS = ""; $env:GOARCH = ""
 ```
 
@@ -161,7 +169,7 @@ $env:GOOS = ""; $env:GOARCH = ""
 
 ```bash
 scp forge-agent-scheduler root@your-server:/usr/local/bin/
-scp deploy/forge-agent-scheduler.service root@your-server:/etc/systemd/system/
+scp example/electricity-advisor/deploy/forge-agent-scheduler.service root@your-server:/etc/systemd/system/
 ```
 
 **3. Create the env file on the server**
