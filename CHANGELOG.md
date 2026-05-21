@@ -1,5 +1,15 @@
 # Changelog — forge-agent
 
+## [0.4.1] — 2026-05-21
+
+### Changed
+
+- `example/electricity-advisor`: switch notification channel from ntfy.sh to
+  Discord webhook; `NTFY_TOPIC` env var replaced by `DISCORD_WEBHOOK_URL`;
+  POST body changed from `text/plain` to `application/json` `{"content": "..."}`.
+
+---
+
 ## [0.4.0] — 2026-05-20
 
 ### Changed

@@ -31,22 +31,22 @@ Your job:
 4. For each date group, find the cheapest consecutive 2-hour block (8 consecutive 15-minute records).
 
 5. Post a concise recommendation in Danish (max 200 characters) via http_post:
-   url: https://ntfy.sh/NTFY_TOPIC_PLACEHOLDER
-   content_type: text/plain
-   body: e.g. "I dag: billigst 13-15 (0.42 kr/kWh). I morgen: billigst 03-05 (0.38 kr/kWh)."
+   url: DISCORD_WEBHOOK_URL_PLACEHOLDER
+   content_type: application/json
+   body: {"content": "I dag: billigst 13-15 (0.42 kr/kWh). I morgen: billigst 03-05 (0.38 kr/kWh)."}
 
 Keep the message short and actionable — it is a push notification.`
 
 func main() {
-	ntfyTopic := requireEnv("NTFY_TOPIC")
+	discordWebhookURL := requireEnv("DISCORD_WEBHOOK_URL")
 
-	prompt := strings.ReplaceAll(electricitySystemPrompt, "NTFY_TOPIC_PLACEHOLDER", ntfyTopic)
+	prompt := strings.ReplaceAll(electricitySystemPrompt, "DISCORD_WEBHOOK_URL_PLACEHOLDER", discordWebhookURL)
 
 	jobs := []agent.Job{
 		{
 			Schedule: "45 13 * * *",
 			Timezone: "Europe/Copenhagen",
-			Task:     "Find the cheapest 2-hour EV charging window for today and tomorrow, then post the recommendation to ntfy.sh.",
+			Task:     "Find the cheapest 2-hour EV charging window for today and tomorrow, then post the recommendation to Discord.",
 			Config: agent.Config{
 				SystemPrompt: prompt,
 			},
@@ -93,8 +93,8 @@ func requireEnv(key string) string {
 		fmt.Fprintf(os.Stderr, "error: required environment variable %s is not set\n", key)
 		fmt.Fprintln(os.Stderr, "")
 		fmt.Fprintln(os.Stderr, "Required environment variables:")
-		fmt.Fprintln(os.Stderr, "  ANTHROPIC_API_KEY   Anthropic API key (read by the SDK automatically)")
-		fmt.Fprintln(os.Stderr, "  NTFY_TOPIC          ntfy.sh topic name for push notifications")
+		fmt.Fprintln(os.Stderr, "  ANTHROPIC_API_KEY     Anthropic API key (read by the SDK automatically)")
+		fmt.Fprintln(os.Stderr, "  DISCORD_WEBHOOK_URL   Discord webhook URL for push notifications")
 		os.Exit(1)
 	}
 	return v
