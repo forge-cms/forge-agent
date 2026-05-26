@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"os"
 
-	agent "forge-cms.dev/forge-agent"
+	agent "smeldr.dev/forge-agent"
 )
 
 func main() {

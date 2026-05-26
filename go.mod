@@ -1,9 +1,9 @@
-module forge-cms.dev/forge-agent
+module smeldr.dev/agent
 
 go 1.26.2
 
 require (
-	forge-cms.dev/forge v1.21.0
+	smeldr.dev/core v0.0.0
 	github.com/anthropics/anthropic-sdk-go v1.43.0
 	github.com/go-co-op/gocron/v2 v2.21.2
 	github.com/modelcontextprotocol/go-sdk v1.6.0

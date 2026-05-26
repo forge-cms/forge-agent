@@ -9,8 +9,8 @@ import (
 	"log/slog"
 	"sync"
 
-	"forge-cms.dev/forge"
-	agent "forge-cms.dev/forge-agent"
+	"smeldr.dev/forge"
+	agent "smeldr.dev/forge-agent"
 )
 
 // Config holds the connection settings passed to every agent run.
