@@ -9,7 +9,7 @@ import (
 	"syscall"
 	_ "time/tzdata" // embed timezone database for Alpine/scratch containers
 
-	agent "smeldr.dev/forge-agent"
+	"smeldr.dev/agent"
 )
 
 const electricitySystemPrompt = `You are a daily electricity price advisor for a Danish household.

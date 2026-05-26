@@ -22,7 +22,7 @@ package forgeagent
 import (
 	"strings"
 
-	"smeldr.dev/forge"
+	"smeldr.dev/core"
 )
 
 // AgentJob is a Forge Node module representing a scheduled or signal-triggered

@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"os"
 
-	agent "smeldr.dev/forge-agent"
+	"smeldr.dev/agent"
 )
 
 const defaultGitHubMCPURL = "https://api.githubcopilot.com/mcp/"

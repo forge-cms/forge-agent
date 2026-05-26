@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"smeldr.dev/forge"
+	"smeldr.dev/core"
 )
 
 // — isCronTrigger ————————————————————————————————————————————————————————————
