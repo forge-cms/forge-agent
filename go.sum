@@ -96,3 +96,5 @@ modernc.org/sqlite v1.50.0 h1:eMowQSWLK0MeiQTdmz3lqoF5dqclujdlIKeJA11+7oM=
 modernc.org/sqlite v1.50.0/go.mod h1:m0w8xhwYUVY3H6pSDwc3gkJ/irZT/0YEXwBlhaxQEew=
 smeldr.dev/core v1.25.1 h1:SKRjHUYIj6v7II3lYHICLxgr8mEGfWh20FV7dk227WA=
 smeldr.dev/core v1.25.1/go.mod h1:37nzRN/NmG34EXpPdcrZ8N7bKww6AVTmYsdj+BpsDps=
+smeldr.dev/core v1.26.0 h1:blYaV7qs21eUYFEucOmXlbTpM70HzbV0ESFGfHHDxYo=
+smeldr.dev/core v1.26.0/go.mod h1:37nzRN/NmG34EXpPdcrZ8N7bKww6AVTmYsdj+BpsDps=
