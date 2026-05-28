@@ -247,7 +247,7 @@ Status lifecycle: Draft (job exists, does not run) → Published (active) → Ar
 
 ### Signal triggers
 
-Set `Trigger` to any `forge.Signal` string value:
+Set `Trigger` to any `smeldr.Signal` string value:
 
 | Signal | Fires when |
 |--------|-----------|
