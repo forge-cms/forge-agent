@@ -32,15 +32,15 @@ type Config struct {
 // and [Module.Stop] in the application's shutdown handler.
 type Module struct {
 	cfg   Config
-	repo  forge.Repository[*AgentJob]
-	mod   *forge.Module[*AgentJob]
+	repo  smeldr.Repository[*AgentJob]
+	mod   *smeldr.Module[*AgentJob]
 	mu    sync.Mutex
 	sched *agent.Scheduler
 }
 
 // CreateTable creates the agent_jobs table if it does not already exist.
 // Call this once at application startup before [New].
-func CreateTable(db forge.DB) error {
+func CreateTable(db smeldr.DB) error {
 	_, err := db.ExecContext(context.Background(), `
 		CREATE TABLE IF NOT EXISTS agent_jobs (
 			id                  TEXT NOT NULL PRIMARY KEY,
@@ -63,19 +63,19 @@ func CreateTable(db forge.DB) error {
 
 // New creates a Module backed by db with the given agent Config.
 // Call [CreateTable] before New so the agent_jobs table exists.
-func New(db forge.DB, cfg Config) *Module {
-	return newWithRepo(forge.NewSQLRepo[*AgentJob](db), cfg)
+func New(db smeldr.DB, cfg Config) *Module {
+	return newWithRepo(smeldr.NewSQLRepo[*AgentJob](db), cfg)
 }
 
 // newWithRepo creates a Module using an explicit repository. Used in tests.
-func newWithRepo(repo forge.Repository[*AgentJob], cfg Config) *Module {
+func newWithRepo(repo smeldr.Repository[*AgentJob], cfg Config) *Module {
 	m := &Module{cfg: cfg, repo: repo}
-	m.mod = forge.NewModule((*AgentJob)(nil),
-		forge.At("/agent-jobs"),
-		forge.Repo(repo),
-		forge.MCP(forge.MCPRead, forge.MCPWrite),
-		forge.On(forge.AfterPublish, m.rebuildOnChange),
-		forge.On(forge.AfterArchive, m.rebuildOnChange),
+	m.mod = smeldr.NewModule((*AgentJob)(nil),
+		smeldr.At("/agent-jobs"),
+		smeldr.Repo(repo),
+		smeldr.MCP(smeldr.MCPRead, smeldr.MCPWrite),
+		smeldr.On(smeldr.AfterPublish, m.rebuildOnChange),
+		smeldr.On(smeldr.AfterArchive, m.rebuildOnChange),
 	)
 	return m
 }
@@ -86,16 +86,16 @@ func newWithRepo(repo forge.Repository[*AgentJob], cfg Config) *Module {
 //
 // Call Register after all other content modules have been registered with app
 // so that signal subscriptions are established before app.Run().
-func (m *Module) Register(app *forge.App) {
+func (m *Module) Register(app *smeldr.App) {
 	app.Content(m.mod)
 
-	for _, sig := range []forge.Signal{
-		forge.AfterCreate, forge.AfterUpdate,
-		forge.AfterPublish, forge.AfterUnpublish,
-		forge.AfterArchive, forge.AfterSchedule, forge.AfterDelete,
+	for _, sig := range []smeldr.Signal{
+		smeldr.AfterCreate, smeldr.AfterUpdate,
+		smeldr.AfterPublish, smeldr.AfterUnpublish,
+		smeldr.AfterArchive, smeldr.AfterSchedule, smeldr.AfterDelete,
 	} {
 		s := sig
-		app.OnSignal(s, func(ctx context.Context, ev forge.SignalEvent) error {
+		app.OnSignal(s, func(ctx context.Context, ev smeldr.SignalEvent) error {
 			return m.handleSignal(ctx, s, ev)
 		})
 	}
@@ -119,15 +119,15 @@ func (m *Module) Stop() {
 // rebuildOnChange is registered as an AfterPublish and AfterArchive handler
 // on the AgentJob module. It rebuilds the cron scheduler whenever an AgentJob
 // transitions in or out of Published status.
-func (m *Module) rebuildOnChange(ctx forge.Context, _ *AgentJob) error {
+func (m *Module) rebuildOnChange(ctx smeldr.Context, _ *AgentJob) error {
 	return m.rebuildScheduler(ctx)
 }
 
 // rebuildScheduler queries all published AgentJobs with cron triggers, builds
 // a new [agent.Scheduler], and replaces the running one atomically.
 func (m *Module) rebuildScheduler(ctx context.Context) error {
-	jobs, err := m.repo.FindAll(ctx, forge.ListOptions{
-		Status: []forge.Status{forge.Published},
+	jobs, err := m.repo.FindAll(ctx, smeldr.ListOptions{
+		Status: []smeldr.Status{smeldr.Published},
 	})
 	if err != nil {
 		return fmt.Errorf("forge-agent: load jobs: %w", err)
@@ -164,7 +164,7 @@ func (m *Module) rebuildScheduler(ctx context.Context) error {
 // handleSignal is called by app.OnSignal for every content lifecycle signal.
 // It fires published AgentJobs whose Trigger matches the signal and whose
 // ContentTypeFilter matches the event's content type.
-func (m *Module) handleSignal(ctx context.Context, sig forge.Signal, ev forge.SignalEvent) error {
+func (m *Module) handleSignal(ctx context.Context, sig smeldr.Signal, ev smeldr.SignalEvent) error {
 	slog.Info("forge-agent: handleSignal called",
 		"signal", string(sig), "type", ev.Type, "slug", ev.Slug)
 
@@ -175,8 +175,8 @@ func (m *Module) handleSignal(ctx context.Context, sig forge.Signal, ev forge.Si
 		return nil
 	}
 
-	jobs, err := m.repo.FindAll(ctx, forge.ListOptions{
-		Status: []forge.Status{forge.Published},
+	jobs, err := m.repo.FindAll(ctx, smeldr.ListOptions{
+		Status: []smeldr.Status{smeldr.Published},
 	})
 	if err != nil {
 		return fmt.Errorf("forge-agent: load jobs for signal %s: %w", sig, err)
@@ -216,7 +216,7 @@ func (m *Module) handleSignal(ctx context.Context, sig forge.Signal, ev forge.Si
 
 // matchesSignal reports whether j should fire in response to sig/ev.
 // Pure function — used in handleSignal and directly testable.
-func matchesSignal(j *AgentJob, sig forge.Signal, ev forge.SignalEvent) bool {
+func matchesSignal(j *AgentJob, sig smeldr.Signal, ev smeldr.SignalEvent) bool {
 	if j.isCronTrigger() {
 		return false
 	}
@@ -252,7 +252,7 @@ func buildTask(j *AgentJob) string {
 
 // buildSignalTask returns the task prompt for a signal-triggered agent run,
 // enriched with the full SignalEvent serialized as JSON.
-func buildSignalTask(j *AgentJob, ev forge.SignalEvent) string {
+func buildSignalTask(j *AgentJob, ev smeldr.SignalEvent) string {
 	evJSON, _ := json.Marshal(ev)
 	task := fmt.Sprintf(
 		"A new %s lifecycle event occurred: %s\nExecute your instructions as defined in the system prompt.",

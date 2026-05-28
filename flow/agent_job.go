@@ -8,7 +8,7 @@
 //
 // Usage:
 //
-//	db := forge.OpenDB("forge.db")
+//	db := smeldr.OpenDB("forge.db")
 //	forgeagent.CreateTable(db)
 //
 //	agentMod := forgeagent.New(db, forgeagent.Config{
@@ -29,7 +29,7 @@ import (
 // agent task. Published jobs are active; Draft and Archived jobs do not run.
 //
 // Trigger is either a 5-field cron expression (e.g. "45 13 * * *") or the
-// string value of a [forge.Signal] constant (e.g. "after_publish"). The
+// string value of a [smeldr.Signal] constant (e.g. "after_publish"). The
 // distinction is by whitespace: cron expressions contain spaces; signal names
 // do not.
 //
@@ -38,10 +38,10 @@ import (
 // types — including other AgentJobs. Use ContentTypeFilter whenever the trigger
 // is a content lifecycle signal to avoid unintended cross-job activation.
 type AgentJob struct {
-	forge.Node
+	smeldr.Node
 	// Name is the human-readable identifier for this job. Used as the slug source.
 	Name string `forge:"required"`
-	// Trigger is a 5-field cron expression or a forge.Signal string value.
+	// Trigger is a 5-field cron expression or a smeldr.Signal string value.
 	Trigger string `forge:"required"`
 	// ContentTypeFilter restricts signal-triggered jobs to the named content type.
 	// Empty matches all types. Ignored for cron triggers.
@@ -57,7 +57,7 @@ type AgentJob struct {
 	WebhookURL string `db:"webhook_url" json:"webhook_url"`
 }
 
-// ContentTitle implements [forge.Titled] so signal events carry the job name.
+// ContentTitle implements [smeldr.Titled] so signal events carry the job name.
 func (j *AgentJob) ContentTitle() string { return j.Name }
 
 // isCronTrigger returns true when Trigger is a cron expression.

@@ -37,46 +37,46 @@ func TestIsCronTrigger(t *testing.T) {
 // — matchesSignal ————————————————————————————————————————————————————————————
 
 func TestMatchesSignal(t *testing.T) {
-	ev := func(typ string) forge.SignalEvent {
-		return forge.SignalEvent{Type: typ, Slug: "test-slug"}
+	ev := func(typ string) smeldr.SignalEvent {
+		return smeldr.SignalEvent{Type: typ, Slug: "test-slug"}
 	}
 
 	cases := []struct {
 		name    string
 		trigger string
 		filter  string
-		sig     forge.Signal
+		sig     smeldr.Signal
 		evType  string
 		want    bool
 	}{
 		{
 			name:    "cron trigger never matches signal",
-			trigger: "45 13 * * *", sig: forge.AfterPublish, evType: "Post",
+			trigger: "45 13 * * *", sig: smeldr.AfterPublish, evType: "Post",
 			want: false,
 		},
 		{
 			name:    "signal match no filter",
-			trigger: "after_publish", sig: forge.AfterPublish, evType: "Post",
+			trigger: "after_publish", sig: smeldr.AfterPublish, evType: "Post",
 			want: true,
 		},
 		{
 			name:    "signal match with matching filter",
-			trigger: "after_publish", filter: "Post", sig: forge.AfterPublish, evType: "Post",
+			trigger: "after_publish", filter: "Post", sig: smeldr.AfterPublish, evType: "Post",
 			want: true,
 		},
 		{
 			name:    "signal match with non-matching filter",
-			trigger: "after_publish", filter: "Story", sig: forge.AfterPublish, evType: "Post",
+			trigger: "after_publish", filter: "Story", sig: smeldr.AfterPublish, evType: "Post",
 			want: false,
 		},
 		{
 			name:    "wrong signal",
-			trigger: "after_create", sig: forge.AfterPublish, evType: "Post",
+			trigger: "after_create", sig: smeldr.AfterPublish, evType: "Post",
 			want: false,
 		},
 		{
 			name:    "AgentJob type with empty filter",
-			trigger: "after_publish", sig: forge.AfterPublish, evType: "AgentJob",
+			trigger: "after_publish", sig: smeldr.AfterPublish, evType: "AgentJob",
 			want: true, // matchesSignal itself does not guard — handleSignal does
 		},
 	}
@@ -94,12 +94,12 @@ func TestMatchesSignal(t *testing.T) {
 // — handleSignal guard ————————————————————————————————————————————————————————
 
 func TestHandleSignalSkipsAgentJobEvents(t *testing.T) {
-	repo := forge.NewMemoryRepo[*AgentJob]()
+	repo := smeldr.NewMemoryRepo[*AgentJob]()
 	ctx := context.Background()
 
 	// Seed an active job that would otherwise match after_publish / all types.
 	j := &AgentJob{
-		Node:         forge.Node{ID: forge.NewID(), Slug: "catch-all", Status: forge.Published},
+		Node:         smeldr.Node{ID: smeldr.NewID(), Slug: "catch-all", Status: smeldr.Published},
 		Name:         "catch-all",
 		Trigger:      "after_publish",
 		SystemPrompt: "test",
@@ -109,10 +109,10 @@ func TestHandleSignalSkipsAgentJobEvents(t *testing.T) {
 	}
 
 	m := newWithRepo(repo, Config{})
-	ev := forge.SignalEvent{Type: "AgentJob", Slug: "some-job"}
+	ev := smeldr.SignalEvent{Type: "AgentJob", Slug: "some-job"}
 
 	// Should return nil without attempting to fire any agent run.
-	if err := m.handleSignal(ctx, forge.AfterPublish, ev); err != nil {
+	if err := m.handleSignal(ctx, smeldr.AfterPublish, ev); err != nil {
 		t.Errorf("handleSignal returned error: %v", err)
 	}
 }
@@ -120,7 +120,7 @@ func TestHandleSignalSkipsAgentJobEvents(t *testing.T) {
 // — rebuildScheduler ——————————————————————————————————————————————————————————
 
 func TestRebuildSchedulerEmpty(t *testing.T) {
-	repo := forge.NewMemoryRepo[*AgentJob]()
+	repo := smeldr.NewMemoryRepo[*AgentJob]()
 	m := newWithRepo(repo, Config{})
 	if err := m.rebuildScheduler(context.Background()); err != nil {
 		t.Fatalf("rebuildScheduler with no jobs: %v", err)
@@ -129,25 +129,25 @@ func TestRebuildSchedulerEmpty(t *testing.T) {
 }
 
 func TestRebuildSchedulerCronJobs(t *testing.T) {
-	repo := forge.NewMemoryRepo[*AgentJob]()
+	repo := smeldr.NewMemoryRepo[*AgentJob]()
 	ctx := context.Background()
 
 	now := time.Now().UTC()
 	for _, j := range []*AgentJob{
 		{
-			Node:         forge.Node{ID: forge.NewID(), Slug: "job-1", Status: forge.Published, CreatedAt: now, UpdatedAt: now},
+			Node:         smeldr.Node{ID: smeldr.NewID(), Slug: "job-1", Status: smeldr.Published, CreatedAt: now, UpdatedAt: now},
 			Name:         "job-1",
 			Trigger:      "0 6 * * *",
 			SystemPrompt: "run daily",
 		},
 		{
-			Node:         forge.Node{ID: forge.NewID(), Slug: "job-2", Status: forge.Published, CreatedAt: now, UpdatedAt: now},
+			Node:         smeldr.Node{ID: smeldr.NewID(), Slug: "job-2", Status: smeldr.Published, CreatedAt: now, UpdatedAt: now},
 			Name:         "job-2",
 			Trigger:      "after_publish", // signal trigger — should not enter scheduler
 			SystemPrompt: "react to publish",
 		},
 		{
-			Node:         forge.Node{ID: forge.NewID(), Slug: "job-3", Status: forge.Draft, CreatedAt: now, UpdatedAt: now},
+			Node:         smeldr.Node{ID: smeldr.NewID(), Slug: "job-3", Status: smeldr.Draft, CreatedAt: now, UpdatedAt: now},
 			Name:         "job-3",
 			Trigger:      "0 8 * * *", // draft — should be excluded
 			SystemPrompt: "draft job",
@@ -199,7 +199,7 @@ func TestBuildTask(t *testing.T) {
 
 func TestBuildSignalTask(t *testing.T) {
 	t.Run("no webhook", func(t *testing.T) {
-		ev := forge.SignalEvent{Type: "Post", Slug: "hello-world", Title: "Hello World", URL: "https://example.com/posts/hello-world"}
+		ev := smeldr.SignalEvent{Type: "Post", Slug: "hello-world", Title: "Hello World", URL: "https://example.com/posts/hello-world"}
 		got := buildSignalTask(&AgentJob{}, ev)
 		if !strings.Contains(got, `"hello-world"`) {
 			t.Errorf("expected slug in task, got: %s", got)
@@ -213,7 +213,7 @@ func TestBuildSignalTask(t *testing.T) {
 	})
 
 	t.Run("with webhook", func(t *testing.T) {
-		ev := forge.SignalEvent{Type: "Post", Slug: "hello-world"}
+		ev := smeldr.SignalEvent{Type: "Post", Slug: "hello-world"}
 		got := buildSignalTask(&AgentJob{WebhookURL: "https://example.com/hook"}, ev)
 		if !strings.Contains(got, "http_post") {
 			t.Errorf("expected http_post instruction, got: %s", got)
@@ -224,7 +224,7 @@ func TestBuildSignalTask(t *testing.T) {
 	})
 
 	t.Run("json contains all event fields", func(t *testing.T) {
-		ev := forge.SignalEvent{Type: "Story", Slug: "my-story", Title: "My Story", URL: "https://example.com/stories/my-story"}
+		ev := smeldr.SignalEvent{Type: "Story", Slug: "my-story", Title: "My Story", URL: "https://example.com/stories/my-story"}
 		got := buildSignalTask(&AgentJob{}, ev)
 		for _, want := range []string{`"my-story"`, `"My Story"`, `"https://example.com/stories/my-story"`} {
 			if !strings.Contains(got, want) {
