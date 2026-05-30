@@ -1,5 +1,15 @@
 # Changelog — forge-agent
 
+## [0.5.1] — 2026-05-30
+
+### Fixed
+
+- `AgentJob`: validation struct tag `forge:"required"` → `smeldr:"required"` on
+  `Name`, `Trigger`, and `SystemPrompt` fields — required for compatibility with
+  `smeldr.dev/core` v1.30.0 (A111).
+
+---
+
 ## [0.4.1] — 2026-05-21
 
 ### Changed
