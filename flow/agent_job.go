@@ -40,14 +40,14 @@ import (
 type AgentJob struct {
 	smeldr.Node
 	// Name is the human-readable identifier for this job. Used as the slug source.
-	Name string `forge:"required"`
+	Name string `smeldr:"required"`
 	// Trigger is a 5-field cron expression or a smeldr.Signal string value.
-	Trigger string `forge:"required"`
+	Trigger string `smeldr:"required"`
 	// ContentTypeFilter restricts signal-triggered jobs to the named content type.
 	// Empty matches all types. Ignored for cron triggers.
 	ContentTypeFilter string `db:"content_type_filter" json:"content_type_filter"`
 	// SystemPrompt is the agent's system instruction, prepended to every run.
-	SystemPrompt string `forge:"required" db:"system_prompt" json:"system_prompt"`
+	SystemPrompt string `smeldr:"required" db:"system_prompt" json:"system_prompt"`
 	// Model is the Anthropic model ID. Defaults to "claude-sonnet-4-6" when empty.
 	Model string
 	// MaxTurns is the maximum tool-use loops per run. Defaults to 10 when zero.

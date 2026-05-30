@@ -2,9 +2,9 @@
 
 A minimal Go agent runtime: Anthropic API + tool use loop + MCP client + built-in HTTP tools. Ships with a cron scheduler for running agent jobs 24/7 in the cloud.
 
-forge-agent connects Claude to any MCP server via SSE or Streamable HTTP, dispatches tool calls, and drives the conversation to completion. It ships as a library (`forge-cms.dev/forge-agent`) and runnable binaries.
+forge-agent connects Claude to any MCP server via SSE or Streamable HTTP, dispatches tool calls, and drives the conversation to completion. It ships as a library (`smeldr.dev/agent`) and runnable binaries.
 
-**Latest: v0.3.5** — [forge-agent/flow](https://pkg.go.dev/forge-cms.dev/forge-agent/flow) (AGPL) · [forge-agent](https://pkg.go.dev/forge-cms.dev/forge-agent) (MIT)
+**Latest: v0.5.1** — [smeldr.dev/agent/flow](https://pkg.go.dev/smeldr.dev/agent/flow) (AGPL) · [smeldr.dev/agent](https://pkg.go.dev/smeldr.dev/agent) (MIT)
 
 ---
 
@@ -204,16 +204,16 @@ The service continues running normally after the triggered run completes.
 
 ---
 
-## Forge integration — `forge-agent/flow/`
+## Forge integration — `smeldr.dev/agent/flow`
 
-`forge-cms.dev/forge-agent/flow` is an AGPL-3.0-or-later sub-package that wires
+`smeldr.dev/agent/flow` is an AGPL-3.0-or-later sub-package that wires
 agent execution into a Forge application. It exposes `AgentJob` as a Forge content
 type with full lifecycle management and auto-generated MCP tools.
 
 ### Quick start
 
 ```go
-import forgeagent "forge-cms.dev/forge-agent/flow"
+import forgeagent "smeldr.dev/agent/flow"
 
 // At startup — create table before connecting the module.
 forgeagent.CreateTable(db)
